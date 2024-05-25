@@ -4,6 +4,7 @@ from gnews import GNews
 from typing import List
 
 from .models import News
+from 
 
 class NewsFetcher:
     
@@ -18,6 +19,9 @@ class NewsFetcher:
     def fetch_latest_news(self):
         # Fetch latest news
         self.latest_news = self.gnews.get_top_news()
+        
+    def fetch_news_from_keywords(self, key_list):
+        return self.gnews.get_news(key_list)
 
     def get_latest_news(self):
         # Return the latest news as a list

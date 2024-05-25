@@ -16,3 +16,5 @@ uritemplate==4.1.1
 mistralai
 python-dotenv
 gnews
+langchain
+

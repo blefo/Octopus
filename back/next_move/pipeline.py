@@ -1,0 +1,47 @@
+import os
+import sys
+from os import getenv
+from dotenv import load_dotenv
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq import ChatGroq
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+import instructor
+from groq import Groq
+from pydantic import BaseModel
+
+from ../news_feed import news_fetcher 
+from news_fetcher import *
+
+
+load_dotenv()
+KEY_GROQ = getenv('GROQ_API_KEY')
+
+client = Groq(api_key=KEY_GROQ)
+client = instructor.from_groq(client, mode=instructor.Mode.TOOLS)
+
+class UserExtract(BaseModel):
+    keywords: list[str]
+
+instruction = "Please give me a list of five keywords related to the following question : "
+question = "What is the situation of the war in Ukraine"
+data = instruction + question
+
+user: UserExtract = client.chat.completions.create(
+    model="mixtral-8x7b-32768",
+    messages=[
+        {
+            "role": "user",
+            "content": data,
+        }
+    ],
+    response_model=UserExtract,
+)
+
+list_of_keywords = user.model_dump()["keywords"]
+fetcher = NewsFetcher()
+articles = fetcher.fetch_news_from_keywords(list_of_keywords)
+print(articles)
