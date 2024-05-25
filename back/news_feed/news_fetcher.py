@@ -1,16 +1,12 @@
 import time
-import os
-from datetime import datetime
 from gnews import GNews
 from typing import List
-from llm_manager.prompt import rephrase_title
-
 
 import instructor
-from llm_manager.inference_structure import GroqNews
+from news_feed.llm_manager.inference_structure import GroqNews
 from groq import Groq
 
-from models import News
+from .models import News
 
 client = Groq(
     api_key= "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" #os.environ.get("GROQ_API_KEY"),
@@ -83,17 +79,13 @@ class NewsFetcher:
 
 
 def news_generator():
-    while True:
-        news_fetcher = NewsFetcher()
-        news_fetcher.fetch_latest_news()
-        latest_news = news_fetcher.get_latest_news()
-        latest_news_not_in_database = news_fetcher.only_not_in_database()
-        latest_with_inferences = news_fetcher.get_inferences_with_groq(latest_news_not_in_database)
+    news_fetcher = NewsFetcher()
+    news_fetcher.fetch_latest_news()
+    latest_news = news_fetcher.get_latest_news()
+    latest_news_not_in_database = news_fetcher.only_not_in_database()
+    latest_with_inferences = news_fetcher.get_inferences_with_groq(latest_news_not_in_database)
 
         # Get Grok inference
-        yield latest_news
-        time.sleep(60)
 
-if __name__ == "__main__":
-    for news in news_generator():
-        print(news)
+
+
