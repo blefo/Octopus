@@ -1,7 +1,6 @@
 import time
 from gnews import GNews
 from typing import List
-
 import instructor
 from news_feed.llm_manager.inference_structure import GroqNews
 from groq import Groq
