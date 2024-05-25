@@ -13,10 +13,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter, HTMLHeaderT
 from langchain.schema import Document
 from mistralai.client import MistralClient
 
-NEWS_MAX_RESULTS = 10
+NEWS_MAX_RESULTS = 3
 
 def split_list(lst, n):
-    # Fonction qui divise une liste lst en n sous-listes
+    # Function to split a list into n sublists
     k, m = divmod(len(lst), n)
     return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
 
@@ -59,8 +59,7 @@ class NewsFetcher:
 
 class TextChunker:
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
-        self.splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, 
-                                                       chunk_overlap=chunk_overlap)
+        self.splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def chunk_text(self, text: str):
         text = Document(page_content=text)
@@ -71,26 +70,23 @@ class VectorSearch:
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    async def fetch_embeddings(self, articles: list[Document]):
+    def fetch_embeddings(self, articles: list[Document]):
         client = MistralClient(api_key=MISTRAL_API_KEY)
-
         batch_articles = split_list(articles, NEWS_MAX_RESULTS)
-
+        embeddings_responses = []
         for batch in batch_articles:
-            embeddings_response = await client.embeddings(model="mistral-embed", input=[a.page_content for a in batch])
-        
-        embeddings_response = [e.embedding for e in embeddings_response.data]
+            embeddings_response = client.embeddings(model="mistral-embed", input=[a.page_content for a in batch])
+            embeddings_responses.extend(embeddings_response.data)
+        embeddings = [e.embedding for e in embeddings_responses]
+        return embeddings
 
-        return embeddings_response
-
-    async def encode_articles(self, articles: list[str]):
-        vectors = await self.fetch_embeddings(articles)
+    def encode_articles(self, articles: list[str]):
+        vectors = self.fetch_embeddings(articles)
         self.index = faiss.IndexFlatL2(len(vectors[0]))
         self.index.add(np.array(vectors))
 
-
     def search_similar_articles(self, query: str, articles: list[str], top_k: int = 5):
-        query_vector = asyncio.run(self.fetch_embeddings([query]))
+        query_vector = self.fetch_embeddings([Document(page_content=query)])
         distances, indices = self.index.search(np.array(query_vector), top_k)
         return [(articles[idx], distances[0][i]) for i, idx in enumerate(indices[0])]
 
@@ -124,44 +120,30 @@ class NewsAggregator:
         instruction = "Please generate a list of three queries related to the following question: "
         
         # Generate three queries
-        time_start = time.time()
         queries = await self.groq_client.generate_queries(instruction, question)
-        print(f"Time taken for query generation: {time.time() - time_start:.2f} seconds")
 
         # Fetch news articles for each query asynchronously
-        time_start = time.time()
         tasks = []
         for query in queries:
             tasks.extend(self.news_fetcher.fetch_articles(query))
         all_articles = tasks
-        merged_articles = all_articles#[article for articles in all_articles for article in articles]
-        print(f"Time taken for article fetching: {time.time() - time_start:.2f} seconds")
 
         # Chunk articles
-        time_start = time.time()
         chunked_articles = []
-        for article in merged_articles:
+        for article in all_articles:
             chunks = self.chunker.chunk_text(article)
             chunked_articles.extend(chunks)
-        print(f"Time taken for text chunking: {time.time() - time_start:.2f} seconds")
 
         # Vectorize articles
-        time_start = time.time()
-        await self.vector_search.encode_articles(chunked_articles)
-        print(f"Time taken for vectorisation: {time.time() - time_start:.2f} seconds")
+        self.vector_search.encode_articles(chunked_articles)
 
         # Search similar articles
-        time_start = time.time()
-        user_query = question
-        similar_articles = self.vector_search.search_similar_articles(user_query, chunked_articles)
+        similar_articles = self.vector_search.search_similar_articles(question, chunked_articles)
         retrieved_text = "\n\n".join([article for article, _ in similar_articles])
-        print(f"Time taken for article retrieval: {time.time() - time_start:.2f} seconds")
 
         # Generate response
-        time_start = time.time()
         prompt_template = "Please provide a comprehensive summary of the following information:\n\n{text}\n\nSummary:"
         response = await self.response_generator.generate_response(retrieved_text, prompt_template)
-        print(f"Time taken for response generation: {time.time() - time_start:.2f} seconds")
 
         return response
 
