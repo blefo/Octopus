@@ -18,10 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from news_feed.urls import urlpatterns as news_feed_urls
+from next_move.urls import urlpatterns as next_move_urls
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/news_feed/', include(news_feed_urls)),
+    path('api/generate/', include(next_move_urls)),
 ]

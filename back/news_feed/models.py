@@ -21,6 +21,8 @@ class News(models.Model):
 
     date_added = models.DateTimeField(auto_now_add=True)
 
+    is_follow_up = models.BooleanField(default=False)
+
     def __str__(self):
         return self.groq_title
 
