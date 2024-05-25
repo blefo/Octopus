@@ -144,7 +144,7 @@ class NewsAggregator:
         self.response_generator = ResponseGenerator(self.groq_client)
 
     async def process(self, question: str):
-        instruction = "You are provided with a question and your task is to generate a list of three queries. The queries MUST be efficient to give information directly related to the question. Question:"
+        instruction = "You are provided with a question and your task is to generate a list of {NUMBER_GNEWS_KEYWORDS} queries. The queries MUST be efficient to give information directly related to the question. Question:"
         
         # Generate three queries
         queries = await self.groq_client.generate_queries(instruction, question)
