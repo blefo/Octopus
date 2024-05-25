@@ -37,57 +37,61 @@ class NewsFetcher:
         return not_in_database
     
     def get_inferences_with_groq(self, news_list: List):
-        full_list = []
-
         for news in news_list:
             # Get News content
-            news_full_content = self.gnews.get_full_article(news['url']).text
+
+            news_full_content = self.gnews.get_full_article(news['url'])
             if news_full_content:
-                # The news is correctly scraped
-                # Get Inference
-                prompt: str = f"""
-                    News Title: {news['title']}
-                    News Content: {news_full_content}
-                """
+                news_full_content_text = news_full_content.text
+                image_cover = list(news_full_content.images)
+                if image_cover is not None: image_cover = image_cover[0]
 
-            else:
-                # Could not scrap the news
-                # Get Inference
-                prompt: str = f"""
-                    News Title: {news['title']}
-                    News Content: {news['description']}
-                """
+                if news_full_content:
+                    # The news is correctly scraped
+                    # Get Inference
+                    prompt: str = f"""
+                        News Title: {news['title']}
+                        News Content: {news_full_content_text}
+                    """
 
-            groq_news: GroqNews = client.chat.completions.create(
-                model="mixtral-8x7b-32768",
-                response_model=GroqNews,
-                messages=[
-                    {"role": "user", "content": prompt},
-                ],
-            )
+                else:
+                    # Could not scrap the news
+                    # Get Inference
+                    prompt: str = f"""
+                        News Title: {news['title']}
+                        News Content: {news['description']}
+                    """
 
-            News.objects.create(
-                hash=self.get_hash(news['title']),
-                base_title=news['title'],
-                base_content=news_full_content,
-                groq_title=groq_news.rephrased_title,
-                groq_key_point_1=groq_news.news_keypoints[0],
-                groq_key_point_2=groq_news.news_keypoints[1],
-                groq_question_1=groq_news.news_related_question[0],
-                groq_question_2=groq_news.news_related_question[1],
-            )
-            print(groq_news)
+                groq_news: GroqNews = client.chat.completions.create(
+                    model="mixtral-8x7b-32768",
+                    response_model=GroqNews,
+                    messages=[
+                        {"role": "user", "content": prompt},
+                    ],
+                )
+
+                News.objects.create(
+                    hash=self.get_hash(news['title']),
+                    base_title=news['title'],
+                    base_content=news_full_content_text,
+                    groq_title=groq_news.rephrased_title,
+                    groq_key_point_1=groq_news.news_keypoints[0],
+                    groq_key_point_2=groq_news.news_keypoints[1],
+                    groq_key_point_3=groq_news.news_keypoints[2],
+                    groq_question_1=groq_news.news_related_question[0],
+                    groq_question_2=groq_news.news_related_question[1],
+                    image_cover=image_cover
+                )
+
+                print(groq_news)
                 
 
 
 def news_generator():
     news_fetcher = NewsFetcher()
     news_fetcher.fetch_latest_news()
-    latest_news = news_fetcher.get_latest_news()
     latest_news_not_in_database = news_fetcher.only_not_in_database()
     latest_with_inferences = news_fetcher.get_inferences_with_groq(latest_news_not_in_database)
-
-        # Get Grok inference
 
 
 

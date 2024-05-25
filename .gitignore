@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 octopus_env
 .env
 **/venv
+=======
+**/back/venv
+>>>>>>> main

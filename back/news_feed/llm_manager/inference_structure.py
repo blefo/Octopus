@@ -3,12 +3,10 @@ from pydantic import BaseModel, Field
 
 class GroqNews(BaseModel):
     rephrased_title: str = Field(description=f"""
-                                    You are provided with a news title and content and your task is to rephrase the title.
-                                    You MUST make if very short.
-                                    You MUST make it as much informative as possible.
-                                    You MSUT make it a little catchy.
-                                    """
-                                )
+                                    You are provided with a news title and content. Your task is to rephrase the title.
+                                    Ensure the rephrased title is concise, catchy, and highly informative.
+                                    Avoid unnecessary words and focus on capturing the essence of the news.
+                                    """)
     news_keypoints: List[str] = Field(description=f"""
                                     You are provided with a news title and content and your task is to generate a list of three keypoints.
                                     
