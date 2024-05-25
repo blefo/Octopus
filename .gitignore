@@ -1,2 +1,5 @@
 octopus_env
 .env
+node_modules
+package.json
+package-lock.json
