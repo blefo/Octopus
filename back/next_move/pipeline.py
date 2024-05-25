@@ -54,5 +54,29 @@ list_of_keywords = user.model_dump()["keywords"]
 gnews = GNews(language='en', country='US', max_results=10)
 articles_json_list = gnews.get_news(' '.join(list_of_keywords))
 for article in articles_json_list:
-    data = gnews.get_full_article(article['url'])
-    print(data)
+    try:
+        data = gnews.get_full_article(article['url'])
+        print(data.title)
+
+full_text = "\n\n".join(articles_content)
+
+# Définir une fonction pour résumer le texte
+def summarize_text(text, model, prompt_template):
+    response = model.completions.create(
+        model="mixtral-8x7b-32768",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt_template.format(text=text),
+            }
+        ],
+        response_model=StrOutputParser,
+    )
+    return response.model_dump()["text"]
+
+# Définir le modèle et le template de prompt pour résumer le texte
+prompt_template = "Please summarize the following text:\n\n{text}\n\nSummary:"
+summary = summarize_text(full_text, client, prompt_template)
+
+# Afficher le résumé
+print(summary)
