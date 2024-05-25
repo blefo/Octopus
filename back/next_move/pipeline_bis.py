@@ -14,6 +14,7 @@ from langchain.schema import Document
 from mistralai.client import MistralClient
 
 NEWS_MAX_RESULTS = 3
+NUMBER_GNEWS_KEYWORDS = 3
 
 def split_list(lst, n):
     # Function to split a list into n sublists
@@ -72,8 +73,10 @@ class VectorSearch:
 
     def fetch_embeddings(self, articles: list[Document]):
         client = MistralClient(api_key=MISTRAL_API_KEY)
-        batch_articles = split_list(articles, NEWS_MAX_RESULTS)
+        batch_articles = split_list(articles, NEWS_MAX_RESULTS*NUMBER_GNEWS_KEYWORDS)
+        batch_articles = [batch for batch in batch_articles if batch]
         embeddings_responses = []
+        
         for batch in batch_articles:
             embeddings_response = client.embeddings(model="mistral-embed", input=[a.page_content for a in batch])
             embeddings_responses.extend(embeddings_response.data)
@@ -117,7 +120,7 @@ class NewsAggregator:
         self.response_generator = ResponseGenerator(self.groq_client)
 
     async def process(self, question: str):
-        instruction = "Please generate a list of three queries related to the following question: "
+        instruction = f"Please generate a list of {NUMBER_GNEWS_KEYWORDS} queries related to the following question: "
         
         # Generate three queries
         queries = await self.groq_client.generate_queries(instruction, question)
@@ -139,7 +142,7 @@ class NewsAggregator:
 
         # Search similar articles
         similar_articles = self.vector_search.search_similar_articles(question, chunked_articles)
-        retrieved_text = "\n\n".join([article for article, _ in similar_articles])
+        retrieved_text = "\n\n".join([article.page_content for article, _ in similar_articles])
 
         # Generate response
         prompt_template = "Please provide a comprehensive summary of the following information:\n\n{text}\n\nSummary:"
