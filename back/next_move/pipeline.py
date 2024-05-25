@@ -12,13 +12,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 import instructor
 from groq import Groq
 from pydantic import BaseModel
+from gnews import GNews
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-sys.path.insert(0, parent_dir)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+# sys.path.insert(0, parent_dir)
 
-from news_feed import news_fetcher
-from news_fetcher import *
+# from news_feed import news_fetcher
+# from news_fetcher import *
 
 
 load_dotenv()
@@ -46,6 +47,10 @@ user: UserExtract = client.chat.completions.create(
 )
 
 list_of_keywords = user.model_dump()["keywords"]
-fetcher = NewsFetcher()
-articles = fetcher.fetch_news_from_keywords(list_of_keywords)
-print(articles)
+# fetcher = NewsFetcher()
+# articles = fetcher.fetch_news_from_keywords(list_of_keywords)
+gnews = GNews(language='en', country='US', max_results=10)
+articles_json_list = gnews.get_news(' '.join(list_of_keywords))
+for article in articles_json_list:
+    data = gnews.get_full_article(article['url'])
+    print(data)
