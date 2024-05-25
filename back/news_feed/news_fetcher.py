@@ -4,7 +4,6 @@ from gnews import GNews
 from typing import List
 
 from .models import News
-from 
 
 class NewsFetcher:
     
@@ -40,7 +39,6 @@ def news_generator():
         news_fetcher = NewsFetcher()
         news_fetcher.fetch_latest_news()
         latest_news = news_fetcher.get_latest_news()
-        for new in 
 
 
         yield latest_news
