@@ -1,2 +1,3 @@
 octopus_env
 .env
+**/venv
