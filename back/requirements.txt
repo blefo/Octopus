@@ -17,4 +17,9 @@ mistralai
 python-dotenv
 gnews
 langchain
+langchain_groq
+instructor
+groq
+newspaper3k
+lxml_html_clean
 
