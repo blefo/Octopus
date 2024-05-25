@@ -7,6 +7,9 @@ class NewsFetcher:
         self.gnews = GNews(language=language, country=country, max_results=max_results)
         self.latest_news = []
 
+    def get_hash(self, content: str):
+        return str(hash(content))
+
     def fetch_latest_news(self):
         # Fetch latest news
         self.latest_news = self.gnews.get_top_news()
@@ -26,9 +29,8 @@ class NewsFetcher:
         print("-" * 40)
 
 def news_generator():
-    news_fetcher = NewsFetcher()
-
     while True:
+        news_fetcher = NewsFetcher()
         news_fetcher.fetch_latest_news()
         latest_news = news_fetcher.get_latest_news()
         yield latest_news
