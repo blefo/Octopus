@@ -30,6 +30,7 @@ class GenerateFollowUpContent(APIView):
              groq_key_point_3=next_content["news_keypoints"][2],
              groq_question_1=next_content["news_related_question"][0],
              groq_question_2=next_content["news_related_question"][1],
+             groq_question_3=next_content["news_related_question"][2],
              image_cover="",
              is_follow_up=True
          )
