@@ -144,7 +144,7 @@ class NewsAggregator:
         self.response_generator = ResponseGenerator(self.groq_client)
 
     async def process(self, question: str):
-        instruction = f"Please generate a list of {NUMBER_GNEWS_KEYWORDS} queries related to the following question: "
+        instruction = "You are provided with a question and your task is to generate a list of three queries. The queries MUST be efficient to give information directly related to the question. Question:"
         
         # Generate three queries
         queries = await self.groq_client.generate_queries(instruction, question)
@@ -169,7 +169,16 @@ class NewsAggregator:
         retrieved_text = "\n\n".join([article.page_content for article, _ in similar_articles])
 
         # Generate response
-        prompt_template = "Please provide a comprehensive summary of the following information:\n\n{text}"
+        prompt_template = """
+                            You are provided with a context and your task is to summarize it in order to answer clearly to the question.
+                            The summary MUST be short and provide clear information about the question.
+                            You MUST write a summary that is answering the question and no other information.
+                            You MUST only use the context information and no other information.
+
+                            \n\n{text}\n\n
+
+                            Summary:
+                        """
         response = await self.response_generator.generate_response(retrieved_text, prompt_template)
 
         return response
