@@ -8,7 +8,7 @@ from .serializers import NewsSerializer
 from .news_fetcher import news_generator
 
 class NewsListAPIView(generics.ListAPIView):
-    queryset = News.objects.all()
+    queryset = News.objects.filter(is_follow_up=False)
     serializer_class = NewsSerializer
     filter_backends = [
         OrderingFilter,
