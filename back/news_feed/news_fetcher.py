@@ -1,11 +1,14 @@
 import time
 from datetime import datetime
 from gnews import GNews
+from typing import List
+from 
 
 class NewsFetcher:
-    def __init__(self, language='en', country='US', max_results=10):
+    def __init__(self, database, language='en', country='US', max_results=10):
         self.gnews = GNews(language=language, country=country, max_results=max_results)
         self.latest_news = []
+        self.database = database
 
     def get_hash(self, content: str):
         return str(hash(content))
@@ -18,21 +21,22 @@ class NewsFetcher:
         # Return the latest news as a list
         return self.latest_news
 
-    def print_latest_news(self):
-        # Print the fetched news
-        print(f"Latest news at {datetime.now()}:\n")
-        for news in self.latest_news:
-            print(f"Title: {news['title']}")
-            print(f"Description: {news['description']}")
-            print(f"Published Date: {news['published date']}")
-            print(f"URL: {news['url']}\n")
-        print("-" * 40)
+    def only_not_in_database(self, database, latest_news: List):
+        not_in_database: List = []
+        for news in latest_news:
+            news_hashed: str = self.get_hash(news['title'])
+            if not database.object.filters(hash = news_hashed).exists():
+                not_in_database.append(news)
+        return not_in_database
 
 def news_generator():
     while True:
         news_fetcher = NewsFetcher()
         news_fetcher.fetch_latest_news()
         latest_news = news_fetcher.get_latest_news()
+
+
+
         yield latest_news
         time.sleep(60)
 
