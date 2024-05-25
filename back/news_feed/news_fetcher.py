@@ -13,7 +13,7 @@ client = Groq(
 client = instructor.from_groq(client, mode=instructor.Mode.TOOLS)
 
 class NewsFetcher:
-    def __init__(self, language='en', country='US', max_results=10):
+    def __init__(self, language='fr', country='FR', max_results=30):
         self.gnews = GNews(language=language, country=country, max_results=max_results)
         self.latest_news = []
 
@@ -43,8 +43,7 @@ class NewsFetcher:
             news_full_content = self.gnews.get_full_article(news['url'])
             if news_full_content:
                 news_full_content_text = news_full_content.text
-                image_cover = list(news_full_content.images)
-                if image_cover is not None: image_cover = image_cover[0]
+                image_cover = news_full_content.top_image
 
                 if news_full_content:
                     # The news is correctly scraped
@@ -70,6 +69,7 @@ class NewsFetcher:
                     ],
                 )
 
+                print(groq_news)
                 News.objects.create(
                     hash=self.get_hash(news['title']),
                     base_title=news['title'],
@@ -83,7 +83,7 @@ class NewsFetcher:
                     image_cover=image_cover
                 )
 
-                print(groq_news)
+
                 
 
 
