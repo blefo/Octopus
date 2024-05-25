@@ -16,5 +16,8 @@ class News(models.Model):
     groq_question_1 = models.CharField(max_length=1000, blank=True)
     groq_question_2 = models.CharField(max_length=1000, blank=True)
 
-    date_added = models.DateField(auto_now_add=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.groq_title
 

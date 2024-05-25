@@ -41,7 +41,7 @@ class NewsFetcher:
 
         for news in news_list:
             # Get News content
-            news_full_content = self.gnews.get_full_article(news['url'])
+            news_full_content = self.gnews.get_full_article(news['url']).text
             if news_full_content:
                 # The news is correctly scraped
                 # Get Inference
@@ -49,14 +49,7 @@ class NewsFetcher:
                     News Title: {news['title']}
                     News Content: {news_full_content}
                 """
-                
-                user: GroqNews = client.chat.completions.create(
-                    model="mixtral-8x7b-32768",
-                    response_model=GroqNews,
-                    messages=[
-                        {"role": "user", "content": prompt},
-                    ],
-                )
+
             else:
                 # Could not scrap the news
                 # Get Inference
@@ -64,16 +57,26 @@ class NewsFetcher:
                     News Title: {news['title']}
                     News Content: {news['description']}
                 """
-                
-                user: GroqNews = client.chat.completions.create(
-                    model="mixtral-8x7b-32768",
-                    response_model=GroqNews,
-                    messages=[
-                        {"role": "user", "content": prompt},
-                    ],
-                )
 
-            print(user)
+            groq_news: GroqNews = client.chat.completions.create(
+                model="mixtral-8x7b-32768",
+                response_model=GroqNews,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+            News.objects.create(
+                hash=self.get_hash(news['title']),
+                base_title=news['title'],
+                base_content=news_full_content,
+                groq_title=groq_news.rephrased_title,
+                groq_key_point_1=groq_news.news_keypoints[0],
+                groq_key_point_2=groq_news.news_keypoints[1],
+                groq_question_1=groq_news.news_related_question[0],
+                groq_question_2=groq_news.news_related_question[1],
+            )
+            print(groq_news)
                 
 
 

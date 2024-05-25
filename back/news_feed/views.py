@@ -15,7 +15,7 @@ class NewsListAPIView(generics.ListAPIView):
         SearchFilter,
     ]
     search_fields = ['groq_title']
-    ordering =['-base_date']
+    ordering =['-date_added']
 
 class CallFucntionsAPIView(APIView):
     def get(self, request):

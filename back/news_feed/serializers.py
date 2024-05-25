@@ -5,7 +5,7 @@ class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = [
-            "base_date",
+            "date_added",
             "groq_title",
             "groq_key_point_1",
             "groq_key_point_2",
