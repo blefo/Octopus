@@ -13,6 +13,33 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter, HTMLHeaderT
 from langchain.schema import Document
 from mistralai.client import MistralClient
 
+from typing import List
+from pydantic import BaseModel, Field
+
+class GroqNews(BaseModel):
+    rephrased_title: str = Field(description=f"""
+                                    You are provided with a news title and content and your task is to rephrase the title.
+                                    You MUST make if very short.
+                                    You MUST make it as much informative as possible.
+                                    You MSUT make it a little catchy.
+                                    """
+                                )
+    news_keypoints: List[str] = Field(description=f"""
+                                    You are provided with a news title and content and your task is to generate a list of three keypoints.
+                                    
+                                      You MUST write very short keypoints.
+                                      You MUST generate very informative and meaningfull keypoints.
+                                      You MUST focus on the main interesting points of the article.
+                                    """)
+    news_related_question: List[str] = Field(description=f"""
+                                            You are provided with a news title and content and your task is to generate a list of three questions.
+                                        
+                                            You MUST write very short questions.
+                                            You MUST write questions that are naturally related to the news article when reading it.
+                                            You MUST generate very informative and meaningfull questions.
+                                            You MUST focus on the main interesting points of the article.
+                                            """)
+
 NEWS_MAX_RESULTS = 3
 NUMBER_GNEWS_KEYWORDS = 3
 
@@ -102,13 +129,10 @@ class ResponseGenerator:
         response = await self.client.client.chat.completions.create(
             model="mixtral-8x7b-32768",
             messages=[{"role": "user", "content": prompt_template.format(text=retrieved_text)}],
-            response_model=ResponseModel,
+            response_model=GroqNews,
         )
-        return response.model_dump()["text"]
+        return response.model_dump()
 
-
-class ResponseModel(BaseModel):
-    text: str
 
 
 class NewsAggregator:
@@ -145,7 +169,7 @@ class NewsAggregator:
         retrieved_text = "\n\n".join([article.page_content for article, _ in similar_articles])
 
         # Generate response
-        prompt_template = "Please provide a comprehensive summary of the following information:\n\n{text}\n\nSummary:"
+        prompt_template = "Please provide a comprehensive summary of the following information:\n\n{text}"
         response = await self.response_generator.generate_response(retrieved_text, prompt_template)
 
         return response
@@ -155,7 +179,7 @@ async def main():
     aggregator = NewsAggregator()
     question = "How many people were killed in Gaza?"
     response = await aggregator.process(question)
-    print(response)
+    return response
 
 
 if __name__ == "__main__":
