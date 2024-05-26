@@ -5,7 +5,7 @@
 
 ## Live Demo
 
-
+![Live Octopus](https://github.com/blefo/Octopus/blob/main/live_demo.gif)
 
 ## Inspiration
 When it comes to staying informed, you have two options: traditional newspapers, which are reliable but often cluttered with irrelevant content, or social media, which is quick but plagued with ads and disinformation. Our project merges the best of both worlds: **fast and truly informative**. You receive only the information that is **relevant to you and based on real facts**. Additionally, you can dive deeper into topics with naturally arising questions.
