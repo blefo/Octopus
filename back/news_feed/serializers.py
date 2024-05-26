@@ -11,5 +11,6 @@ class NewsSerializer(serializers.ModelSerializer):
             "groq_key_point_3",
             "groq_question_1",
             "groq_question_2",
+            "groq_question_3",
             "image_cover"
         ]

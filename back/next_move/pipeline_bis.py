@@ -204,12 +204,9 @@ class NewsAggregator:
         return response
 
 
-async def main():
+async def generate_follow_up_question(question: str):
     aggregator = NewsAggregator()
-    question = "How many people were killed in Gaza?"
     response = await aggregator.process(question)
     return response
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
