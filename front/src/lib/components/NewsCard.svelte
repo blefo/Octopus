@@ -74,9 +74,9 @@
             <div class="card-body">
                 <h2 class="card-title">{groq_news.groq_title}</h2>
                 {#if groq_news.news_source}
-                    <div class="badge bg-[#ff7000]/20 p-2 gap-2">
-                        <img src={`https://www.google.com/s2/favicons?domain=${groq_news.news_source}`} alt={groq_news.news_source} class="w-4 h-4" />
-                        {groq_news.news_source}
+                    <div class="badge bg-[#ff7000] text-white p-2 gap-2">
+                        <img src={`https://www.google.com/s2/favicons?domain=${groq_news.news_source}`} alt={groq_news.news_source} class="w-4 h-4 border-none rounded-lg" />
+                        {new URL(groq_news.news_source).hostname.split(".").reverse()[1]}
                     </div>
                 {/if}
                 <ul class="flex flex-col gap-2 pl-4 list-disc">

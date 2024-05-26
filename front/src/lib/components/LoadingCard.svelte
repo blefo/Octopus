@@ -11,6 +11,10 @@
 >
     <div class="card-body">
         <h2 class="card-title">{question}</h2>
+        <div class="flex flex-row gap-2">
+            <div class="badge skeleton bg-[#ff7000]/40 w-12 text-white p-2 gap-2"></div>
+            <div class="badge skeleton bg-[#ff7000]/40 w-12 text-white p-2 gap-2"></div>
+        </div>
         <ul class="flex flex-col gap-2 pl-4 list-disc">
             <li class="skeleton h-12"></li>
             <li class="skeleton h-12"></li>
