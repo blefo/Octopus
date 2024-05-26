@@ -178,10 +178,7 @@ class NewsAggregator:
         retrieved_sources_favicon = {}
         for doc in retrieved_docs:
             author_only = ""
-            pattern = r'www\.(.*?)\.com'
-            match = re.search(pattern, doc[0].metadata['favicon'])
-            if match:
-                author_only = match.group(1)
+            author_only = doc[0].metadata['favicon'].split('.')[1]
             
             retrieved_sources_favicon[author_only] = doc[0].metadata['author']
  

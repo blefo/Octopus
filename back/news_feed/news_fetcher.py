@@ -81,7 +81,8 @@ class NewsFetcher:
                     groq_question_1=groq_news.news_related_question[0],
                     groq_question_2=groq_news.news_related_question[1],
                     groq_question_3=groq_news.news_related_question[2],
-                    image_cover=image_cover
+                    image_cover=image_cover,
+                    news_source=news['']
                 )
 
 
