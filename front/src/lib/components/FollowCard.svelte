@@ -1,6 +1,9 @@
 <script>
     export let follow_content;
     export let onFollowQuestion = (question) => {};
+    export let handleCustomQuestion = (question) => {};
+
+    let search_question = "";
 </script>
 
 <div 
@@ -31,14 +34,18 @@
                 {follow_content.groq_question_2}
                 <p class="text-2xl text-right">+</p>
             </button>
-            <div class="flex border-t-2 border-b-[#ff7000] pb-2 pt-4">
+            <form class="flex border-t-2 border-b-[#ff7000] pb-2 pt-4" on:submit={(e) => {
+                e.preventDefault();
+                handleCustomQuestion(search_question);
+            }}>
                 <input
                     type="text"
                     placeholder="Have a question?"
                     class="w-full outline-none text-[#ff7000]"
+                    bind:value={search_question}
                 />
-                <p class="text-2xl text-[#ff7000]">+</p>
-            </div>
+                <button type="submit" class="text-2xl text-[#ff7000]">+</button>
+            </form>
         </div>
     </div>
 </div>
