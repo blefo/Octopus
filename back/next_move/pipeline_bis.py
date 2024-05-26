@@ -1,5 +1,7 @@
 import os
 import time
+import re
+from urllib.parse import urlparse
 import asyncio
 import aiohttp
 import numpy as np
@@ -81,7 +83,7 @@ class NewsFetcher:
     def fetch_articles(self, query: str):
         articles_json_list = self.gnews.get_news(query)
         tasks = [self.gnews.get_full_article(article['url']) for article in articles_json_list]
-        tasks = [t.text for t in tasks if t is not None]
+        tasks = [t for t in tasks if t is not None]
         return tasks
 
 
@@ -89,8 +91,10 @@ class TextChunker:
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
         self.splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
-    def chunk_text(self, text: str):
-        text = Document(page_content=text)
+    def chunk_text(self, text: str, author_link: str, favicon: str):
+        parsed_url = urlparse(author_link)
+        favicon = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        text = Document(page_content=text, metadata = {'author': author_link, 'favicon': favicon})
         return self.splitter.split_documents(documents=[text])
 
 
@@ -144,7 +148,7 @@ class NewsAggregator:
         self.response_generator = ResponseGenerator(self.groq_client)
 
     async def process(self, question: str):
-        instruction = f"Please generate a list of {NUMBER_GNEWS_KEYWORDS} queries related to the following question: "
+        instruction = "You are provided with a question and your task is to generate a list of {NUMBER_GNEWS_KEYWORDS} queries. The queries MUST be efficient to give information directly related to the question. Question:"
         
         # Generate three queries
         queries = await self.groq_client.generate_queries(instruction, question)
@@ -157,20 +161,45 @@ class NewsAggregator:
 
         # Chunk articles
         chunked_articles = []
+        article_sources = []
         for article in all_articles:
-            chunks = self.chunker.chunk_text(article)
+            chunks = self.chunker.chunk_text(article.text, article.canonical_link, article.meta_favicon)
             chunked_articles.extend(chunks)
+            
+            article_sources.extend(chunked_articles) 
 
-        # Vectorize articles
         self.vector_search.encode_articles(chunked_articles)
 
         # Search similar articles
         similar_articles = self.vector_search.search_similar_articles(question, chunked_articles)
-        retrieved_text = "\n\n".join([article.page_content for article, _ in similar_articles])
+
+        # Extract text and sources
+        retrieved_docs = [doc for doc in similar_articles]
+        retrieved_sources_favicon = {}
+        for doc in retrieved_docs:
+            author_only = ""
+            pattern = r'www\.(.*?)\.com'
+            match = re.search(pattern, doc[0].metadata['favicon'])
+            if match:
+                author_only = match.group(1)
+            
+            retrieved_sources_favicon[author_only] = doc[0].metadata['author']
+ 
+        retrieved_text = "\n\n".join([doc[0].page_content for doc in retrieved_docs])
 
         # Generate response
-        prompt_template = "Please provide a comprehensive summary of the following information:\n\n{text}"
+        prompt_template = """
+                            You are provided with a context and your task is to summarize it in order to answer clearly to the question.
+                            The summary MUST be short and provide clear information about the question.
+                            You MUST write a summary that is answering the question and no other information.
+                            You MUST only use the context information and no other information.
+
+                            \n\n{text}\n\n
+
+                            Summary:
+                        """
         response = await self.response_generator.generate_response(retrieved_text, prompt_template)
+        response['sources'] = retrieved_sources_favicon
 
         return response
 
