@@ -1,34 +1,68 @@
 <script>
     import { getFollowContent } from "../api.js";
     import FollowCard from "./FollowCard.svelte";
-    import { tick } from 'svelte';
+    import LoadingCard from "./LoadingCard.svelte";
+    import { tick } from "svelte";
 
     export let groq_news;
 
     let follow_contents = [];
-    let follow_content_container;
 
-    function scrollIntoView(target) {
-        let target_id = "#" + target;
-		const el = document.getElementById(target_id);
-        console.log(el);
-		if (!el) return;
-        el.scrollIntoView({
-            behavior: 'smooth'
-        });
-    }
+    let follow_content_container;
+    let isLoading = false;
+    let search_question = "";
 
     const handleQuestion = async (question) => {
-        console.log(question);
+        search_question = question;
+        isLoading = true;
+        await tick();
+        follow_content_container.lastChild.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+            inline: "nearest",
+        });
         const new_content = await getFollowContent(question);
         follow_contents = [...follow_contents, new_content];
+        isLoading = false;
         await tick();
-        follow_content_container.lastChild.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest"});
+        follow_content_container.lastChild.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+            inline: "nearest",
+        });
+    };
+
+    const handleCustomQuestion = async () => {
+        console.log("custom question !");
+        isLoading = true;
+        await tick();
+        console.log("search_question", search_question);
+        console.log(
+            "follow_content_container.lastChild",
+            follow_content_container.lastChild,
+        );
+        follow_content_container.lastChild.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+            inline: "nearest",
+        });
+        const new_content = await getFollowContent(search_question);
+        follow_contents = [...follow_contents, new_content];
+        isLoading = false;
+        await tick();
+        follow_content_container.lastChild.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+            inline: "nearest",
+        });
     };
 </script>
 
-<div bind:this={follow_content_container} class="card carousel-item w-full rounded-box bg-base-100">
-    <div  class="carousel-vertical">
+<div
+    bind:this={follow_content_container}
+    class="card carousel-item w-full rounded-box bg-base-100"
+>
+    <div class="carousel-vertical">
         <div class="arousel-item">
             <figure>
                 <img
@@ -52,30 +86,53 @@
                             handleQuestion(groq_news.groq_question_1)}
                     >
                         {groq_news.groq_question_1}
-                        <p class="text-2xl text-right">+</p>
+                        <p class="text-2xl text-right text-[#ff7000]">+</p>
                     </button>
                     <button
                         class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
-                        on:click={() => handleQuestion(groq_news.groq_question_2)}
+                        on:click={() =>
+                            handleQuestion(groq_news.groq_question_2)}
                     >
                         {groq_news.groq_question_2}
-                        <p class="text-2xl text-right">+</p>
+                        <p class="text-2xl text-right text-[#ff7000]">+</p>
                     </button>
-                    <div class="flex border-t-2 border-b-[#ff7000] pb-2 pt-4">
+                    <button
+                        class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
+                        on:click={() =>
+                            handleQuestion(groq_news.groq_question_2)}
+                    >
+                        {groq_news.groq_question_3}
+                        <p class="text-2xl text-right text-[#ff7000]">+</p>
+                    </button>
+                    <form
+                        class="flex border-t-2 border-b-[#ff7000] pb-2 pt-4"
+                        on:submit={() => {
+                            e.preventDefault();
+                            handleQuestion(search_question);
+                        }}
+                    >
                         <input
                             type="text"
                             placeholder="Have a question?"
                             class="w-full outline-none text-[#ff7000]"
-                            
+                            on:change={(e) => search_question = e.target.value}
                         />
-                        <p class="text-2xl text-[#ff7000]">+</p>
-                    </div>
+                        <button type="submit" class="text-2xl text-[#ff7000]"
+                            >+</button
+                        >
+                    </form>
                 </div>
             </div>
         </div>
-        
         {#each follow_contents as follow_content (follow_content.groq_title)}
-            <FollowCard follow_content={follow_content} onFollowQuestion={handleQuestion} />
+            <FollowCard
+                {follow_content}
+                onFollowQuestion={handleQuestion}
+                handleCustomQuestion={handleQuestion}
+            />
         {/each}
+        {#if isLoading}
+            <LoadingCard question={search_question} />
+        {/if}
     </div>
 </div>
