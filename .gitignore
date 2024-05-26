@@ -3,7 +3,8 @@ octopus_env
 .env
 **/venv
 **/__pycache__
-**.pyc
+*.pyc
+
 
 # SVELTE
 **/node_modules/
