@@ -23,6 +23,8 @@ class News(models.Model):
 
     news_source = models.URLField(max_length=1000, blank=True, null=True)
 
+    is_follow_up = models.BooleanField(default=False)
+
     def __str__(self):
         return self.groq_title
 

@@ -35,8 +35,9 @@ class GenerateFollowUpContent(APIView):
              is_follow_up=True
          )
 
-        serialized = NewsSerializer(groq_follow_up)
-        return Response(serialized.data)
+        serialized = NewsSerializer(groq_follow_up).data
+        serialized["sources"] = next_content["sources"]
+        return Response(serialized)
 
 
 

@@ -70,6 +70,7 @@ class NewsFetcher:
                 )
 
                 print(groq_news)
+
                 News.objects.create(
                     hash=self.get_hash(news['title']),
                     base_title=news['title'],
@@ -82,7 +83,7 @@ class NewsFetcher:
                     groq_question_2=groq_news.news_related_question[1],
                     groq_question_3=groq_news.news_related_question[2],
                     image_cover=image_cover,
-                    news_source=news['publisher'].split('.')[-2]
+                    news_source=""
                 )
 
 
