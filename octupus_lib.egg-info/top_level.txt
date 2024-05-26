@@ -1,3 +1,0 @@
-back
-front
-octopus_lib

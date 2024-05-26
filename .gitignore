@@ -4,6 +4,7 @@ octopus_env
 **/venv
 **/__pycache__
 *.pyc
+/octupus_lib.egg-info
 
 
 # SVELTE
