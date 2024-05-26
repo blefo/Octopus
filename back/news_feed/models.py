@@ -21,11 +21,7 @@ class News(models.Model):
 
     date_added = models.DateTimeField(auto_now_add=True)
 
-<<<<<<< Updated upstream
-    is_follow_up = models.BooleanField(default=False)
-=======
     news_source = models.URLField(max_length=1000, blank=True, null=True)
->>>>>>> Stashed changes
 
     def __str__(self):
         return self.groq_title
