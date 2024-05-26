@@ -1,7 +1,7 @@
 <script>
     export let follow_content;
-    export let onFollowQuestion = (question) => {};
-    export let handleCustomQuestion = (question) => {};
+    export let onFollowQuestion = (question, follow_content) => {};
+    export let handleCustomQuestion = (question, follow_content) => {};
 
     let search_question = "";
 </script>
@@ -38,7 +38,7 @@
             <button
                 class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
                 on:click={() =>
-                    onFollowQuestion(follow_content.groq_question_1)}
+                    onFollowQuestion(follow_content.groq_question_1, follow_content)}
             >
                 {follow_content.groq_question_1}
                 <p class="text-2xl text-[#ff7000] text-right">+</p>
@@ -46,7 +46,7 @@
             <button
                 class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
                 on:click={() =>
-                    onFollowQuestion(follow_content.groq_question_2)}
+                    onFollowQuestion(follow_content.groq_question_2, follow_content)}
             >
                 {follow_content.groq_question_2}
                 <p class="text-2xl text-right text-[#ff7000]">+</p>
@@ -55,7 +55,7 @@
                 class="flex border-t-2 border-b-[#ff7000] pb-2 pt-4"
                 on:submit={(e) => {
                     e.preventDefault();
-                    handleCustomQuestion(search_question);
+                    handleCustomQuestion(search_question, follow_content);
                 }}
             >
                 <input

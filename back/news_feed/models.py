@@ -27,4 +27,3 @@ class News(models.Model):
 
     def __str__(self):
         return self.groq_title
-

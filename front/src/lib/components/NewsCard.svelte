@@ -12,7 +12,7 @@
     let isLoading = false;
     let search_question = "";
 
-    const handleQuestion = async (question) => {
+    const handleQuestion = async (question, groq_news) => {
         search_question = question;
         isLoading = true;
         await tick();
@@ -21,7 +21,7 @@
             block: "end",
             inline: "nearest",
         });
-        const new_content = await getFollowContent(question);
+        const new_content = await getFollowContent(question, groq_news);
         follow_contents = [...follow_contents, new_content];
         isLoading = false;
         await tick();
@@ -89,7 +89,7 @@
                     <button
                         class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
                         on:click={() =>
-                            handleQuestion(groq_news.groq_question_1)}
+                            handleQuestion(groq_news.groq_question_1, groq_news)}
                     >
                         {groq_news.groq_question_1}
                         <p class="text-2xl text-right text-[#ff7000]">+</p>
@@ -97,7 +97,7 @@
                     <button
                         class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
                         on:click={() =>
-                            handleQuestion(groq_news.groq_question_2)}
+                            handleQuestion(groq_news.groq_question_2, groq_news)}
                     >
                         {groq_news.groq_question_2}
                         <p class="text-2xl text-right text-[#ff7000]">+</p>
@@ -105,7 +105,7 @@
                     <button
                         class="flex border-t-2 pt-1 items-center flex-row text-left transition-all duration-300 hover:text-[#ff7000]"
                         on:click={() =>
-                            handleQuestion(groq_news.groq_question_2)}
+                            handleQuestion(groq_news.groq_question_2, groq_news)}
                     >
                         {groq_news.groq_question_3}
                         <p class="text-2xl text-right text-[#ff7000]">+</p>
@@ -114,7 +114,7 @@
                         class="flex border-t-2 border-b-[#ff7000] pb-2 pt-4"
                         on:submit={() => {
                             e.preventDefault();
-                            handleQuestion(search_question);
+                            handleQuestion(search_question, groq_news);
                         }}
                     >
                         <input

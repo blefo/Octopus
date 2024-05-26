@@ -5,9 +5,10 @@ export function getNews() {
     .then(response => response.data.results);
 }
 
-export function getFollowContent(question) {
+export function getFollowContent(question, groq_news) {
     const data = {
-        question: question
+        question: question,
+        previous_news: groq_news
     }
     return axios.post('http://localhost:8000/api/generate/follow/', data)
     .then(response => {

@@ -14,47 +14,32 @@ from groq import Groq, AsyncGroq
 from langchain_text_splitters import RecursiveCharacterTextSplitter, HTMLHeaderTextSplitter
 from langchain.schema import Document
 from mistralai.client import MistralClient
+from octopus_lib.model_config.instructor import ResponseQuestionFormat
+from pathlib import Path
 
 from typing import List
 from pydantic import BaseModel, Field
 
-class GroqNews(BaseModel):
-    rephrased_title: str = Field(description=f"""
-                                    You are provided with a news title and content and your task is to rephrase the title.
-                                    You MUST make if very short.
-                                    You MUST make it as much informative as possible.
-                                    You MSUT make it a little catchy.
-                                    """
-                                )
-    news_keypoints: List[str] = Field(description=f"""
-                                    You are provided with a news title and content and your task is to generate a list of three keypoints.
-                                    
-                                      You MUST write very short keypoints.
-                                      You MUST generate very informative and meaningfull keypoints.
-                                      You MUST focus on the main interesting points of the article.
-                                    """)
-    news_related_question: List[str] = Field(description=f"""
-                                            You are provided with a news title and content and your task is to generate a list of three questions.
-                                        
-                                            You MUST write very short questions.
-                                            You MUST write questions that are naturally related to the news article when reading it.
-                                            You MUST generate very informative and meaningfull questions.
-                                            You MUST focus on the main interesting points of the article.
-                                            """)
+from octopus_lib.model_config.prompt import gnews_keywords_prompt, question_answering_prompt
 
-NEWS_MAX_RESULTS = 3
-NUMBER_GNEWS_KEYWORDS = 3
+# Load environment variables
+load_dotenv()
+relative_path = Path(__file__).resolve().parent.parent / "model_config/config.env"
+load_dotenv(relative_path)
+
+KEY_GROQ = os.getenv('GROQ_API_KEY')
+MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
+
+NEWS_MAX_RESULTS = int(os.getenv('NEWS_MAX_RESULTS'))
+NUMBER_GNEWS_KEYWORDS = int(os.getenv('NUMBER_GNEWS_KEYWORDS'))
+TOP_SIMILAR_ARTICLE_CHUNKS = int(os.getenv('TOP_SIMILAR_ARTICLE_CHUNKS'))
+MODEL_INFERENCE = os.getenv('MODEL_INFERENCE')
+MODEL_EMBEDDING = os.getenv('MODEL_EMBEDDING')
 
 def split_list(lst, n):
     # Function to split a list into n sublists
     k, m = divmod(len(lst), n)
     return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
-
-
-# Load environment variables
-load_dotenv()
-KEY_GROQ = os.getenv('GROQ_API_KEY')
-MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 
 
 class GroqClient:
@@ -65,7 +50,7 @@ class GroqClient:
     async def generate_queries(self, instruction: str, question: str):
         data = instruction + question
         response = await self.client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model=MODEL_INFERENCE,
             messages=[{"role": "user", "content": data}],
             response_model=QueryList,
         )
@@ -109,7 +94,7 @@ class VectorSearch:
         embeddings_responses = []
         
         for batch in batch_articles:
-            embeddings_response = client.embeddings(model="mistral-embed", input=[a.page_content for a in batch])
+            embeddings_response = client.embeddings(model=MODEL_EMBEDDING, input=[a.page_content for a in batch])
             embeddings_responses.extend(embeddings_response.data)
         embeddings = [e.embedding for e in embeddings_responses]
         return embeddings
@@ -119,21 +104,21 @@ class VectorSearch:
         self.index = faiss.IndexFlatL2(len(vectors[0]))
         self.index.add(np.array(vectors))
 
-    def search_similar_articles(self, query: str, articles: list[str], top_k: int = 5):
-        query_vector = self.fetch_embeddings([Document(page_content=query)])
-        distances, indices = self.index.search(np.array(query_vector), top_k)
-        return [(articles[idx], distances[0][i]) for i, idx in enumerate(indices[0])]
+    def search_similar_articles(self, query: str, articles: list[str], top_k: int = TOP_SIMILAR_ARTICLE_CHUNKS):
+            query_vector = self.fetch_embeddings([Document(page_content=query)])
+            distances, indices = self.index.search(np.array(query_vector), top_k)
+            return [(articles[idx], distances[0][i]) for i, idx in enumerate(indices[0])]
 
 
 class ResponseGenerator:
     def __init__(self, client: GroqClient):
         self.client = client
 
-    async def generate_response(self, retrieved_text: str, prompt_template: str):
+    async def generate_response(self, prompt_template: str):
         response = await self.client.client.chat.completions.create(
-            model="mixtral-8x7b-32768",
-            messages=[{"role": "user", "content": prompt_template.format(text=retrieved_text)}],
-            response_model=GroqNews,
+            model=MODEL_INFERENCE,
+            messages=[{"role": "user", "content": prompt_template}],
+            response_model=ResponseQuestionFormat,
         )
         return response.model_dump()
 
@@ -147,9 +132,8 @@ class NewsAggregator:
         self.vector_search = VectorSearch(MISTRAL_API_KEY)
         self.response_generator = ResponseGenerator(self.groq_client)
 
-    async def process(self, question: str):
-        instruction = "You are provided with a question and your task is to generate a list of {NUMBER_GNEWS_KEYWORDS} queries. The queries MUST be efficient to give information directly related to the question. Question:"
-        
+    async def process(self, question: str, title: str = '', key_points: list[str] = []):
+        instruction = gnews_keywords_prompt(title, key_points, question, NUMBER_GNEWS_KEYWORDS)
         # Generate three queries
         queries = await self.groq_client.generate_queries(instruction, question)
 
@@ -185,25 +169,23 @@ class NewsAggregator:
         retrieved_text = "\n\n".join([doc[0].page_content for doc in retrieved_docs])
 
         # Generate response
-        prompt_template = """
-                            You are provided with a context and your task is to summarize it in order to answer clearly to the question.
-                            The summary MUST be short and provide clear information about the question.
-                            You MUST write a summary that is answering the question and no other information.
-                            You MUST only use the context information and no other information.
-
-                            \n\n{text}\n\n
-
-                            Summary:
-                        """
-        response = await self.response_generator.generate_response(retrieved_text, prompt_template)
+        prompt_template = question_answering_prompt(retrieved_text, question)
+        response = await self.response_generator.generate_response(prompt_template)
         response['sources'] = retrieved_sources_favicon
 
         return response
 
 
-async def generate_follow_up_question(question: str):
+async def generate_follow_up_question(question: str, title: str = '', key_points: list[str] = []):
     aggregator = NewsAggregator()
     response = await aggregator.process(question)
     return response
 
+
+if __name__ == "__main__":
+    question = "What is the latest news about the US economy?"
+    title = "US Economy"
+    key_points = ["Inflation rate increases", "Unemployment rate decreases", "GDP growth slows down"]
+    response = asyncio.run(generate_follow_up_question(question, title, key_points))
+    print(response)
 

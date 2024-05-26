@@ -2,20 +2,34 @@ import time
 from gnews import GNews
 from typing import List
 import instructor
-from news_feed.llm_manager.inference_structure import GroqNews
+from octopus_lib.model_config.instructor import GroqNews
 from groq import Groq
+from dotenv import load_dotenv
+import os
+from pathlib import Path
 
-from .models import News
+from octopus_lib.model_config.prompt import news_feed_prompt
+
+
+#from back.news_feed.models import News
+
+
+load_dotenv()
+relative_path = Path(__file__).resolve().parent.parent / "model_config/config.env"
+load_dotenv(relative_path)
+
+MODEL_INFERENCE = os.getenv('MODEL_INFERENCE')
 
 client = Groq(
-    api_key= "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" #os.environ.get("GROQ_API_KEY"),
+    api_key= os.getenv("GROQ_API_KEY"),
 )
 client = instructor.from_groq(client, mode=instructor.Mode.TOOLS)
 
 class NewsFetcher:
-    def __init__(self, language='fr', country='FR', max_results=30):
+    def __init__(self, news_db, language='fr', country='FR', max_results=30):
         self.gnews = GNews(language=language, country=country, max_results=max_results)
         self.latest_news = []
+        self.news_db = news_db
 
     def get_hash(self, content: str):
         return str(hash(content))
@@ -32,7 +46,7 @@ class NewsFetcher:
         not_in_database: List = []
         for news in self.latest_news:
             news_hashed: str = self.get_hash(news['title'])
-            if not News.objects.filter(hash = news_hashed).exists():
+            if not self.news_db.objects.filter(hash = news_hashed).exists():
                 not_in_database.append(news)
         return not_in_database
     
@@ -48,21 +62,15 @@ class NewsFetcher:
                 if news_full_content:
                     # The news is correctly scraped
                     # Get Inference
-                    prompt: str = f"""
-                        News Title: {news['title']}
-                        News Content: {news_full_content_text}
-                    """
+                    prompt: str = news_feed_prompt(news['title'], news_full_content_text)
 
                 else:
                     # Could not scrap the news
                     # Get Inference
-                    prompt: str = f"""
-                        News Title: {news['title']}
-                        News Content: {news['description']}
-                    """
+                    prompt: str = news_feed_prompt(news['title'], news['description'])
 
                 groq_news: GroqNews = client.chat.completions.create(
-                    model="mixtral-8x7b-32768",
+                    model=MODEL_INFERENCE,
                     response_model=GroqNews,
                     messages=[
                         {"role": "user", "content": prompt},
@@ -70,7 +78,7 @@ class NewsFetcher:
                 )
 
 
-                News.objects.create(
+                self.news_db.objects.create(
                     hash=self.get_hash(news['title']),
                     base_title=news['title'],
                     base_content=news_full_content_text,
@@ -89,8 +97,8 @@ class NewsFetcher:
                 
 
 
-def news_generator():
-    news_fetcher = NewsFetcher()
+def news_generator(news_db):
+    news_fetcher = NewsFetcher(news_db)
     news_fetcher.fetch_latest_news()
     latest_news_not_in_database = news_fetcher.only_not_in_database()
     latest_with_inferences = news_fetcher.get_inferences_with_groq(latest_news_not_in_database)

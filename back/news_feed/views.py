@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 
 from .models import News
 from .serializers import NewsSerializer
-from .news_fetcher import news_generator
+#from .news_fetcher import news_generator
+from octopus_lib.pipelines.news_fetcher import news_generator
 
 class NewsListAPIView(generics.ListAPIView):
     queryset = News.objects.filter(is_follow_up=False)
@@ -19,7 +20,7 @@ class NewsListAPIView(generics.ListAPIView):
 
 class CallFucntionsAPIView(APIView):
     def get(self, request):
-        news_generator()
+        news_generator(News)
         return Response("Hello")
 
 
