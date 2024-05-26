@@ -1,7 +1,9 @@
-<<<<<<< HEAD
+# Python
 octopus_env
 .env
 **/venv
-=======
-**/back/venv
->>>>>>> main
+**/__pycache__
+**.pyc
+
+# SVELTE
+**/node_modules/
