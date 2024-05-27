@@ -7,9 +7,9 @@
 </div>
 
 ## Live Demo
-
-<img src="https://github.com/blefo/Octopus/blob/main/live_demo.gif" alt="Live Octopus" height="400" width="200"/>
-
+<div align="center">
+  <img src="https://github.com/blefo/Octopus/blob/main/live_demo.gif" alt="Live Octopus" height="400" width="200"/>
+</div>
 ## Pitch Deck
 
 ### Inspiration
