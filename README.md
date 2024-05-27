@@ -1,13 +1,16 @@
+
 # Octopus - Mistral Hackathon - May 2024
 
-![Mistral AI](https://avatars.githubusercontent.com/u/132372032?s=200&v=4)
-![Groq](https://m.iotone.com/files/vendor/groq635203cb3080c_1.jpg)
+<div align="center">
+  <img src="https://avatars.githubusercontent.com/u/132372032?s=200&v=4" alt="Mistral AI" width="100"/>
+  <img src="https://m.iotone.com/files/vendor/groq635203cb3080c_1.jpg" alt="Groq" width="100"/>
+</div>
 
 ## Live Demo
 
-![Live Octopus](https://github.com/blefo/Octopus/blob/main/live_demo.gif)
+<img src="https://github.com/blefo/Octopus/blob/main/live_demo.gif" alt="Live Octopus" height="400" width="200"/>
 
-## Picth Deck
+## Pitch Deck
 
 ### Inspiration
 When it comes to staying informed, you have two options: traditional newspapers, which are reliable but often cluttered with irrelevant content, or social media, which is quick but plagued with ads and disinformation. Our project merges the best of both worlds: **fast and truly informative**. You receive only the information that is **relevant to you and based on real facts**. Additionally, you can dive deeper into topics with naturally arising questions.
@@ -37,35 +40,39 @@ Our next step is to make Octopus faster at answering questions. We designed Octo
 - [Node.js](https://nodejs.org/en/download/)
 
 ### Steps
-1. Clone the repository
-2. Install the required packages for the backend
-```bash
-cd back
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cd ..
-pip install -e .
-```
-3. Create a `.env` at the root of the project with the following content
-```bash
-MISTRAL_API_KEY=YOUR_MISTRAL_API_KEY
-GROQ_API_KEY=YOUR_GROQ_API_KEY
-```
-3. Install the required packages for the frontend
-```bash
-cd ../front
-npm install
-```
-4. Run the backend
-```bash
-cd ../back
-python manage.py makemigrations
-python manage.py migrate
-python manage.py runserver
-```
-5. Run the frontend
-```bash
-cd ../front
-npm run dev
-```
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/blefo/Octopus.git
+    cd Octopus
+    ```
+2. Install the required packages for the backend:
+    ```bash
+    cd back
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    cd ..
+    pip install -e .
+    ```
+3. Create a `.env` file at the root of the project with the following content:
+    ```bash
+    MISTRAL_API_KEY=YOUR_MISTRAL_API_KEY
+    GROQ_API_KEY=YOUR_GROQ_API_KEY
+    ```
+4. Install the required packages for the frontend:
+    ```bash
+    cd front
+    npm install
+    ```
+5. Run the backend:
+    ```bash
+    cd back
+    python manage.py makemigrations
+    python manage.py migrate
+    python manage.py runserver
+    ```
+6. Run the frontend:
+    ```bash
+    cd front
+    npm run dev
+    ```
