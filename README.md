@@ -44,6 +44,7 @@ cd back
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+cd ..
 pip install -e .
 ```
 3. Create a `.env` at the root of the project with the following content
