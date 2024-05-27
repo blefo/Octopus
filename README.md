@@ -1,7 +1,7 @@
 # Octopus - Mistral Hackathon - May 2024
 
 ![Mistral AI](https://avatars.githubusercontent.com/u/132372032?s=200&v=4)
-![Groq](https://avatars.githubusercontent.com/u/7464134?s=200&v=4)
+![Groq](https://m.iotone.com/files/vendor/groq635203cb3080c_1.jpg)
 
 ## Live Demo
 
